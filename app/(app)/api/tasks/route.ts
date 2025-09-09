@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createTaskSchema } from '@/lib/validations'
+import { Subtask } from '@/lib/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     const tasksWithCompletion = tasks?.map(task => ({
       ...task,
       completion: {
-        completedCount: task.subtasks?.filter(st => st.done).length || 0,
+        completedCount: task.subtasks?.filter((st: Subtask) => st.done).length || 0,
         total: task.subtasks?.length || 0
       }
     })) || []
