@@ -37,7 +37,7 @@ export async function GET(
     const taskWithCompletion = {
       ...task,
       completion: {
-        completedCount: task.subtasks?.filter(st => st.done).length || 0,
+        completedCount: task.subtasks?.filter((st: any) => st.done).length || 0,
         total: task.subtasks?.length || 0
       }
     }
