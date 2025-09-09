@@ -182,7 +182,7 @@ export function TaskDetailModal({
             
             <div className="space-y-4">
               <PriorityMatrix
-                value={formData.priority}
+                value={formData.priority || 'NI'}
                 onChange={(priority) => setFormData({ ...formData, priority })}
                 disabled={isLoading}
               />
