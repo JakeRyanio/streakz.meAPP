@@ -346,7 +346,7 @@ export default function TasksPage() {
               tasks={dailyTasks}
               onTasksReorder={handleTasksReorder}
               onTaskComplete={handleCompleteTask}
-              onTaskEdit={openTaskDetail}
+              onTaskEdit={(task) => openTaskDetail(task.id)}
               onAddSubtask={handleAddSubtask}
               onToggleSubtask={handleToggleSubtask}
             />
@@ -389,7 +389,7 @@ export default function TasksPage() {
                 tasks={priorityTasks}
                 onTasksReorder={handleTasksReorder}
                 onTaskComplete={handleCompleteTask}
-                onTaskEdit={openTaskDetail}
+                onTaskEdit={(task) => openTaskDetail(task.id)}
                 onAddSubtask={handleAddSubtask}
                 onToggleSubtask={handleToggleSubtask}
               />

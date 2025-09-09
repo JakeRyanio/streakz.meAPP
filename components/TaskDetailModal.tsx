@@ -13,11 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { PriorityBadge } from './PriorityBadge'
-import { Task, Subtask, TaskLink, PriorityType, PRIORITY_LABELS } from '@/lib/types'
+import { PriorityMatrix } from './PriorityMatrix'
+import { Task, Subtask, TaskLink, PriorityType } from '@/lib/types'
 import { UpdateTaskInput } from '@/lib/validations'
 import { useTaskUI } from '@/store/useTaskUI'
 import { toast } from 'sonner'
@@ -180,32 +180,16 @@ export function TaskDetailModal({
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value: PriorityType) => 
-                    setFormData({ ...formData, priority: value })
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-4">
+              <PriorityMatrix
+                value={formData.priority}
+                onChange={(priority) => setFormData({ ...formData, priority })}
+                disabled={isLoading}
+              />
               
               <div className="space-y-2">
                 <Label htmlFor="is_daily">Daily Task</Label>
-                <div className="flex items-center space-x-2 pt-2">
+                <div className="flex items-center space-x-2">
                   <Switch
                     id="is_daily"
                     checked={formData.is_daily}
