@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
-  const [settings, setSettings] = useState<UserSettings | null>(null)
+  const [settings, setSettings] = useState<UserSettings | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [celebrationStreak, setCelebrationStreak] = useState(0)
   const [showCelebration, setShowCelebration] = useState(false)
