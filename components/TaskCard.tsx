@@ -39,6 +39,7 @@ export function TaskCard({
 }: TaskCardProps) {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [showAddSubtask, setShowAddSubtask] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const isCompleted = !!task.completed_at
   const completionPercentage = task.completion.total > 0 
@@ -130,20 +131,26 @@ export function TaskCard({
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <PriorityBadge priority={task.priority} />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit?.(task)
-                  }}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
+                  <div className="flex items-center gap-2">
+                    {isCompleted ? (
+                      <Badge className="bg-green-500 hover:bg-green-600 text-white font-bold">
+                        SMASHED! 🎉
+                      </Badge>
+                    ) : (
+                      <PriorityBadge priority={task.priority} />
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEdit?.(task)
+                      }}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
             </div>
 
             {/* Progress */}
@@ -162,7 +169,7 @@ export function TaskCard({
             {/* Subtasks */}
             {task.subtasks && task.subtasks.length > 0 && (
               <div className="space-y-1">
-                {task.subtasks.slice(0, 3).map((subtask) => (
+                {(isExpanded ? task.subtasks : task.subtasks.slice(0, 3)).map((subtask) => (
                   <div
                     key={subtask.id}
                     className="flex items-center gap-2 text-sm"
@@ -189,9 +196,18 @@ export function TaskCard({
                 ))}
                 
                 {task.subtasks.length > 3 && (
-                  <p className="text-xs text-muted-foreground pl-6">
-                    +{task.subtasks.length - 3} more subtasks
-                  </p>
+                  <button
+                    className="text-xs text-muted-foreground pl-6 hover:text-foreground transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIsExpanded(!isExpanded)
+                    }}
+                  >
+                    {isExpanded 
+                      ? 'Show less' 
+                      : `+${task.subtasks.length - 3} more subtasks`
+                    }
+                  </button>
                 )}
               </div>
             )}

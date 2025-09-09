@@ -62,6 +62,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
+    console.log('PATCH body:', JSON.stringify(body, null, 2))
     const validatedData = updateTaskSchema.parse(body)
 
     const { data: task, error } = await supabase
@@ -83,6 +84,7 @@ export async function PATCH(
     return NextResponse.json(task)
   } catch (error) {
     if (error instanceof Error && 'issues' in error) {
+      console.error('Validation error:', error)
       return NextResponse.json({ error: 'Validation failed', details: error }, { status: 400 })
     }
     

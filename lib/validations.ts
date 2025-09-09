@@ -14,7 +14,7 @@ export const updateTaskSchema = z.object({
   is_daily: z.boolean().optional(),
   priority: z.enum(['UI', 'UN', 'NI', 'NN']).optional(),
   order_index: z.number().optional(),
-  completed_at: z.string().optional(),
+  completed_at: z.string().nullable().optional(),
   completion: z.object({
     completedCount: z.number(),
     total: z.number()
@@ -23,7 +23,7 @@ export const updateTaskSchema = z.object({
     lastCompletedDate: z.string().optional(),
     currentStreak: z.number(),
     bestStreak: z.number().optional()
-  }).optional()
+  }).nullable().optional()
 })
 
 export const createSubtaskSchema = z.object({

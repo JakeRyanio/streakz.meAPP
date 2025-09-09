@@ -201,22 +201,35 @@ export default function StreaksPage() {
                     </Badge>
                   </div>
                   
-                  <div className="grid gap-2 pl-4">
+                  <div className="grid gap-3 pl-4">
                     {tasksByDate[date].map(task => (
                       <div
                         key={task.id}
-                        className="flex items-center justify-between p-2 bg-muted/50 rounded"
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg border border-green-200 dark:border-green-800"
                       >
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                          <span className="text-sm">{task.title}</span>
-                          {task.is_daily && (
-                            <Badge variant="outline" className="text-xs">
-                              Daily
-                            </Badge>
-                          )}
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{task.title}</span>
+                              {task.is_daily && (
+                                <Badge variant="outline" className="text-xs">
+                                  Daily
+                                </Badge>
+                              )}
+                            </div>
+                            {task.completed_at && (
+                              <p className="text-xs text-muted-foreground">
+                                Completed at {formatDateForTimezone(new Date(task.completed_at), timezone, 'h:mm a')}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <PriorityBadge priority={task.priority} />
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-green-500 hover:bg-green-600 text-white font-bold text-xs">
+                            SMASHED! 🎉
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                   </div>

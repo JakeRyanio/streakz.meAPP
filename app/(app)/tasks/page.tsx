@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, Filter, Settings } from 'lucide-react'
+import { Calendar, Filter, Settings, CheckCircle2 } from 'lucide-react'
 import { TaskCard } from '@/components/TaskCard'
 import { DraggableTaskList } from '@/components/DraggableTaskList'
 import { AddTaskDialog } from '@/components/AddTaskDialog'
 import { TaskDetailModal } from '@/components/TaskDetailModal'
 import { EmptyState } from '@/components/EmptyState'
 import { StreakCelebration } from '@/components/StreakCelebration'
+import { SettingsModal } from '@/components/SettingsModal'
+import { FilterModal, TaskFilters } from '@/components/FilterModal'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +17,7 @@ import { Task, Subtask, Settings as UserSettings, TaskLink } from '@/lib/types'
 import { CreateTaskInput, UpdateTaskInput } from '@/lib/validations'
 import { groupTasksByPriority, sortTasks } from '@/lib/sort'
 import { updateStreakOnCompletion, resetDailyTaskIfNeeded } from '@/lib/streaks'
-import { getTodayString } from '@/lib/tz'
+import { getTodayString, formatDateForTimezone } from '@/lib/tz'
 import { useTaskUI } from '@/store/useTaskUI'
 import { toast } from 'sonner'
 
@@ -25,6 +27,16 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true)
   const [celebrationStreak, setCelebrationStreak] = useState(0)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [filters, setFilters] = useState<TaskFilters>({
+    priorities: ['UI', 'UN', 'NI', 'NN'],
+    showDaily: true,
+    showRegular: true,
+    showCompleted: false,
+    showWithSubtasks: true,
+    showWithLinks: true
+  })
   
   const { activeTaskId, openTaskDetail } = useTaskUI()
 
@@ -294,6 +306,53 @@ export default function TasksPage() {
     }
   }
 
+  const handleSettingsUpdate = async (updatedSettings: Partial<UserSettings>) => {
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSettings)
+      })
+
+      if (!response.ok) throw new Error('Failed to update settings')
+      
+      const newSettings = await response.json()
+      setSettings(newSettings)
+      
+      // Refetch tasks if sort mode changed
+      if (updatedSettings.sort_mode && updatedSettings.sort_mode !== settings?.sort_mode) {
+        fetchTasks()
+      }
+    } catch (error) {
+      console.error('Error updating settings:', error)
+      throw error
+    }
+  }
+
+  // Filter tasks based on current filters
+  const filterTasks = (tasksToFilter: Task[]) => {
+    return tasksToFilter.filter(task => {
+      // Priority filter
+      if (!filters.priorities.includes(task.priority)) return false
+      
+      // Task type filter
+      if (task.is_daily && !filters.showDaily) return false
+      if (!task.is_daily && !filters.showRegular) return false
+      
+      // Completion filter - only filter OUT completed tasks if showCompleted is false
+      const isCompleted = !!task.completed_at
+      if (isCompleted && !filters.showCompleted) return false
+      // If showCompleted is false, also filter out non-completed tasks from the completed view
+      if (!isCompleted && !filters.showCompleted) return true
+      
+      // Content filters
+      if (!filters.showWithSubtasks && task.subtasks && task.subtasks.length > 0) return false
+      if (!filters.showWithLinks && task.links && task.links.length > 0) return false
+      
+      return true
+    })
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -310,8 +369,11 @@ export default function TasksPage() {
     )
   }
 
-  const dailyTasks = tasks.filter(task => task.is_daily && !task.completed_at)
-  const currentTasks = tasks.filter(task => !task.is_daily && !task.completed_at)
+  // Apply filters first, then separate by type (exclude completed tasks from main view)
+  const activeTasks = tasks.filter(task => !task.completed_at)
+  const filteredTasks = filterTasks(activeTasks)
+  const dailyTasks = filteredTasks.filter(task => task.is_daily)
+  const currentTasks = filteredTasks.filter(task => !task.is_daily)
   const sortedCurrentTasks = sortTasks(currentTasks, settings?.sort_mode || 'priorityThenManual')
   const groupedTasks = groupTasksByPriority(sortedCurrentTasks)
 
@@ -321,11 +383,28 @@ export default function TasksPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Tasks</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsFilterOpen(true)}
+          >
             <Filter className="w-4 h-4 mr-2" />
             Filter
+            {(filters.priorities.length < 4 || !filters.showDaily || !filters.showRegular || filters.showCompleted) && (
+              <Badge variant="secondary" className="ml-2 h-4 px-1 text-xs">
+                {[
+                  filters.priorities.length < 4 ? 1 : 0,
+                  !filters.showDaily || !filters.showRegular ? 1 : 0,
+                  filters.showCompleted ? 1 : 0
+                ].reduce((a, b) => a + b, 0)}
+              </Badge>
+            )}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsSettingsOpen(true)}
+          >
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
@@ -399,7 +478,7 @@ export default function TasksPage() {
       })}
 
       {/* Empty State */}
-      {tasks.length === 0 && (
+      {activeTasks.length === 0 && (
         <EmptyState
           title="No tasks yet"
           description="Create your first task to get started on your productivity journey."
@@ -427,6 +506,22 @@ export default function TasksPage() {
         streak={celebrationStreak}
         isVisible={showCelebration}
         onComplete={() => setShowCelebration(false)}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSettingsUpdate={handleSettingsUpdate}
+      />
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
       />
     </div>
   )

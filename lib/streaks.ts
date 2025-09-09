@@ -30,7 +30,10 @@ export function calculateStreak(task: Task, timezone: string): number {
 
 export function updateStreakOnCompletion(task: Task, timezone: string): Task {
   if (!task.is_daily) {
-    return task
+    return {
+      ...task,
+      completed_at: new Date().toISOString()
+    }
   }
 
   const today = getTodayString(timezone)
