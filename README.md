@@ -2,6 +2,8 @@
 
 A modern, production-ready task management app built with Next.js 14 and Supabase. Features daily streaks, Eisenhower prioritization, drag-and-drop task management, and beautiful dark/light themes.
 
+<!-- Updated for Vercel deployment -->
+
 ![Streakz Screenshot](https://via.placeholder.com/800x400/22c55e/ffffff?text=Streakz+App)
 
 ## 🚀 Features
